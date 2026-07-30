@@ -17,7 +17,7 @@ on:
         type: string
         required: true
       image:
-        description: 'Container image for the application'
+        description: 'Container image passed only when the application template declares the image parameter'
         type: string
         required: false
         default: ''
@@ -212,9 +212,10 @@ jobs:
           # $BUILD_REGISTRY, authenticating with the Kubernetes Secret named
           # $REGISTRY_SECRET_NAME. That Secret is created on the target cluster by
           # the app's Radius.Security/secrets resource during `rad deploy` (fed by
-          # the registryUsername/registryPassword parameters injected by the
-          # run-rad-commands action). Only the secret NAME is wired here via the
-          # recipe pack's containerImagesRegistrySecretName. $BUILD_REGISTRY is
+          # the registryUsername/registryPassword parameters conditionally injected
+          # by the run-rad-commands action when the app declares them). Only the secret
+          # NAME is wired here via the recipe pack's
+          # containerImagesRegistrySecretName. $BUILD_REGISTRY is
           # ghcr.io/<owner>/<repo> so images land under the repository's package
           # namespace; it must be lowercase.
           BUILD_REGISTRY=$(echo "${{ vars.RADIUS_BUILD_REGISTRY || format('ghcr.io/{0}', github.repository) }}" | tr '[:upper:]' '[:lower:]')
@@ -263,10 +264,7 @@ jobs:
           app-file: ${{ env.APP_FILE }}
 
       - name: Run rad commands
-        # TEMPORARY: pinned to radius-project/radius PR #12580 to test the fix for
-        # deploy parameter injection into templates without an `image` parameter.
-        # Revert to @main once PR #12580 merges.
-        uses: radius-project/radius/.github/extension/actions/run-rad-commands@ryanwaite-fix-deploy-image-param
+        uses: radius-project/radius/.github/extension/actions/run-rad-commands@main
         with:
           environment: ${{ inputs.environment }}
           app-file: ${{ env.APP_FILE }}
